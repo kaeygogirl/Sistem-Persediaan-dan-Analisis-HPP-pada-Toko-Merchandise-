@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>RuangStok | Wonder Merch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div id="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="m16 4 2.8 2.7 4-.4 1.2 3.7 3.5 2-1.2 3.8 1.2 3.8-3.5 2-1.2 3.7-4-.4L16 28l-2.8-2.7-4 .4L8 22l-3.5-2 1.2-3.8-1.2-3.8 3.5-2 1.2-3.7 4 .4L16 4Z"/><path d="m11.2 12 2.1 8h1.1l1.6-5 1.6 5h1.1l2.1-8"/></svg></span><span class="brand-name">Wonder Merch<span>Inventory & HPP</span></span></div>
+      <nav aria-label="Menu utama">
+        <button class="nav-link active" data-page="dashboard"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
+        <button class="nav-link" data-page="produk"><i data-lucide="package" aria-hidden="true"></i><span>Produk</span></button>
+        <button class="nav-link" data-page="supplier"><i data-lucide="truck" aria-hidden="true"></i><span>Supplier</span></button>
+        <button class="nav-link" data-page="barang-masuk"><i data-lucide="arrow-down-to-line" aria-hidden="true"></i><span>Barang Masuk</span></button>
+        <button class="nav-link" data-page="barang-keluar"><i data-lucide="arrow-up-from-line" aria-hidden="true"></i><span>Barang Keluar</span></button>
+        <button class="nav-link" data-page="kartu-persediaan"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Kartu Persediaan</span></button>
+        <button class="nav-link" data-page="analisis-hpp"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Analisis HPP</span></button>
+        <button class="nav-link" data-page="settings"><i data-lucide="settings-2" aria-hidden="true"></i><span>Settings</span></button>
+      </nav>
+      <div class="sidebar-bottom"><div class="sidebar-note"><i data-lucide="shield-alert"></i><span>Mode development</span></div><button class="collapse-btn" id="collapse-sidebar" title="Ciutkan menu"><i data-lucide="panel-left-close"></i></button></div>
+    </aside>
+    <div class="mobile-shade" id="mobile-shade"></div>
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left"><button class="icon-button mobile-menu" id="mobile-menu" aria-label="Buka menu"><i data-lucide="menu"></i></button><div><p class="eyebrow">RUANGSTOK · SISTEM PERSEDIAAN</p><h1 id="page-title">Dashboard</h1></div></div>
+        <div class="topbar-actions"><button class="mode-toggle" id="theme-quick" type="button" aria-label="Beralih ke mode gelap" title="Beralih ke mode gelap"><i data-lucide="moon" aria-hidden="true"></i></button><span class="header-logo" aria-label="Wonder Merch"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="m16 4 2.8 2.7 4-.4 1.2 3.7 3.5 2-1.2 3.8 1.2 3.8-3.5 2-1.2 3.7-4-.4L16 28l-2.8-2.7-4 .4L8 22l-3.5-2 1.2-3.8-1.2-3.8 3.5-2 1.2-3.7 4 .4L16 4Z"/><path d="m11.2 12 2.1 8h1.1l1.6-5 1.6 5h1.1l2.1-8"/></svg><strong>Wonder Merch</strong></span></div>
+      </header>
+      <div class="page-content">
+        <section class="page active" id="page-dashboard" data-title="Dashboard">
+          <div class="section-heading"><div><h2>Ringkasan toko</h2><p>Pantau performa dan kondisi persediaan Anda.</p></div><select id="dashboard-period" class="select-compact"><option value="bulan_ini">Bulan ini</option><option value="minggu_ini">Minggu ini</option><option value="hari_ini">Hari ini</option></select></div>
+          <div class="kpi-grid" id="dashboard-kpis"></div>
+          <div class="dashboard-grid">
+            <article class="card alert-card"><div class="card-heading"><div><h3>Perlu perhatian</h3><p>Alert persediaan dan pergerakan produk</p></div><i data-lucide="bell"></i></div><div id="dashboard-alerts"></div></article>
+            <article class="card chart-card"><div class="card-heading"><div><h3>Komposisi Nilai Persediaan per Kategori</h3><p>Nilai saat ini berdasarkan stok × HPP</p></div><select id="pie-mode" class="select-compact"><option value="sub">Sub-kategori</option><option value="parent">Kategori induk</option></select></div><div class="chart-wrap"><canvas id="inventory-chart"></canvas><div class="empty-chart hidden" id="chart-empty">Belum ada nilai persediaan untuk ditampilkan.</div></div></article>
+          </div>
+          <div class="dashboard-grid lower-grid">
+            <article class="card"><div class="card-heading"><div><h3>Pembelian terbaru</h3><p>Barang masuk terakhir</p></div><button class="text-button" data-go="barang-masuk">Lihat semua</button></div><div id="recent-purchases"></div></article>
+            <article class="card"><div class="card-heading"><div><h3>Penjualan terbaru</h3><p>Transaksi penjualan terakhir</p></div><button class="text-button" data-go="barang-keluar">Lihat semua</button></div><div id="recent-sales"></div></article>
+          </div>
+          <article class="card"><div class="card-heading"><div><h3>Kontribusi laba produk</h3><p>Lima produk dengan laba kotor tertinggi</p></div><i data-lucide="award"></i></div><div id="top-products"></div></article>
+        </section>
+
+        <section class="page" id="page-produk" data-title="Produk">
+          <div class="section-heading"><div><h2>Daftar produk</h2><p>Kelola katalog dan tinjau harga jual serta stok.</p></div><div class="button-row"><button class="button button-soft" id="bulk-margin-open"><i data-lucide="percent"></i> Set Margin Massal</button><button class="button button-primary" id="product-add"><i data-lucide="plus"></i> Tambah Produk</button></div></div>
+          <div class="card table-card">
+            <div class="toolbar"><label class="search-box"><i data-lucide="search"></i><input id="product-search" placeholder="Cari nama atau SKU..."></label><select id="product-category-filter" class="filter-select"><option value="">Semua kategori</option></select><select id="product-stock-filter" class="filter-select"><option value="">Semua stok</option><option value="true">Stok minimum</option></select><select id="product-status-filter" class="filter-select"><option value="aktif">Aktif</option><option value="all">Semua status</option><option value="nonaktif">Nonaktif</option></select><button class="button button-outline" id="margin-review-open"><i data-lucide="badge-alert"></i> Review Harga</button></div>
+            <p class="product-status-help">Gunakan tombol <strong>Nonaktifkan</strong> atau <strong>Aktifkan</strong> di kolom Aksi. Untuk mengaktifkan produk lagi, pilih filter <strong>Semua status</strong>; stok dan riwayat tetap tersimpan saat produk dinonaktifkan.</p>
+            <div id="product-table"></div><div id="product-pagination" class="pagination"></div>
+          </div>
+        </section>
+
+        <section class="page" id="page-supplier" data-title="Supplier">
+          <div class="section-heading"><div><h2>Supplier</h2><p>Kelola mitra pemasok dan riwayat pembelian.</p></div><button class="button button-primary" id="supplier-add"><i data-lucide="plus"></i> Tambah Supplier</button></div>
+          <div class="card table-card"><div class="toolbar"><label class="search-box"><i data-lucide="search"></i><input id="supplier-search" placeholder="Cari nama supplier..."></label><select id="supplier-status-filter" class="filter-select"><option value="">Semua status</option><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div><div id="supplier-table"></div><div id="supplier-pagination" class="pagination"></div></div>
+        </section>
+
+        <section class="page" id="page-barang-masuk" data-title="Barang Masuk">
+          <div class="section-heading"><div><h2>Barang Masuk</h2><p>Catat pembelian dan biaya perolehan dengan moving average.</p></div><button class="button button-primary" id="purchase-add"><i data-lucide="plus"></i> Catat Barang Masuk</button></div>
+          <div class="card table-card"><div class="toolbar"><label class="search-box"><i data-lucide="search"></i><input id="purchase-search" placeholder="Cari nomor transaksi..."></label><select id="purchase-supplier-filter" class="filter-select"><option value="">Semua supplier</option></select><input type="date" id="purchase-from" class="filter-select" aria-label="Tanggal awal"><input type="date" id="purchase-to" class="filter-select" aria-label="Tanggal akhir"></div><div id="purchase-table"></div><div id="purchase-pagination" class="pagination"></div></div>
+        </section>
+
+        <section class="page" id="page-barang-keluar" data-title="Barang Keluar">
+          <div class="section-heading"><div><h2>Barang Keluar</h2><p>Catat penjualan atau kelola retur dan pergerakan persediaan dalam satu alur.</p></div><button class="button button-primary" id="outgoing-add"><i data-lucide="plus"></i> Transaksi Baru</button></div>
+          <div class="tabs" id="outgoing-tabs"><button class="tab active" data-tab="penjualan">Penjualan</button><button class="tab" data-tab="penyesuaian">Penyesuaian Stok</button></div>
+          <div class="card table-card"><div class="toolbar"><label class="search-box"><i data-lucide="search"></i><input id="outgoing-search" placeholder="Cari nomor transaksi..."></label><select id="outgoing-kind" class="filter-select"><option value="">Semua jenis</option><option value="retur_penjualan">Penukaran dari customer</option><option value="retur_ke_supplier">Retur ke supplier</option><option value="barang_rusak">Barang rusak</option><option value="barang_hilang">Barang hilang</option><option value="write_off_kadaluarsa">Kedaluwarsa</option><option value="koreksi_kurang">Koreksi stok kurang</option><option value="koreksi_lebih">Koreksi stok lebih</option></select><input type="date" id="outgoing-from" class="filter-select"><input type="date" id="outgoing-to" class="filter-select"></div><div id="outgoing-table"></div><div id="outgoing-pagination" class="pagination"></div></div>
+        </section>
+
+        <section class="page" id="page-kartu-persediaan" data-title="Kartu Persediaan">
+          <div class="section-heading"><div><h2>Kartu Persediaan</h2><p>Telusuri jejak pergerakan dan saldo tiap produk.</p></div><button class="button button-outline" id="stock-export"><i data-lucide="download"></i> Export CSV</button></div>
+          <div class="card table-card"><div class="toolbar stock-toolbar"><select id="stock-mode" class="filter-select"><option value="">Semua produk</option><option value="product">Produk tertentu</option></select><select id="stock-product" class="filter-select hidden"><option value="">Pilih produk</option></select><select id="stock-category" class="filter-select"><option value="">Semua kategori</option></select><input type="date" id="stock-from" class="filter-select"><input type="date" id="stock-to" class="filter-select"><select id="stock-kind" class="filter-select"><option value="">Semua jenis</option></select><label class="search-box"><i data-lucide="search"></i><input id="stock-search" placeholder="SKU, produk, transaksi..."></label></div><div id="stock-table"></div><div id="stock-pagination" class="pagination"></div></div>
+        </section>
+
+        <section class="page" id="page-analisis-hpp" data-title="Analisis HPP">
+          <div class="section-heading"><div><h2>Analisis HPP & laba</h2><p>Evaluasi performa penjualan, margin, harga, dan kerugian.</p></div><select id="analysis-period" class="select-compact"><option value="bulan_ini">Bulan ini</option><option value="hari_ini">Hari ini</option><option value="7_hari">7 hari terakhir</option><option value="bulan_lalu">Bulan lalu</option><option value="triwulan_ini">Triwulan ini</option><option value="6_bulan">6 bulan terakhir</option><option value="tahun_ini">Tahun ini</option><option value="tahun_lalu">Tahun lalu</option></select></div>
+          <div class="kpi-grid analysis-kpis" id="analysis-kpis"></div>
+          <div class="card"><div class="card-heading"><div><h3>Nilai persediaan per kategori</h3><p>Snapshot saat ini, stok × HPP rata-rata</p></div><select id="analysis-group" class="select-compact"><option value="induk">Kategori induk</option><option value="subkategori">Sub-kategori</option></select></div><div id="analysis-category-chart" class="analysis-chart"><canvas id="category-chart"></canvas></div></div>
+          <div class="card table-card"><div class="card-heading"><div><h3>Kontribusi laba per produk</h3><p>Menggunakan HPP snapshot setiap transaksi</p></div></div><div id="analysis-products"></div></div>
+          <div class="dashboard-grid"><div class="card"><div class="card-heading"><div><h3>Evaluasi harga jual</h3><p>Margin indikatif berdasarkan harga jual default</p></div></div><div id="analysis-review"></div></div><div class="card"><div class="card-heading"><div><h3>Kerugian persediaan</h3><p>Terpisah dari laba kotor penjualan</p></div></div><div id="analysis-losses"></div></div></div>
+          <div class="card table-card"><div class="card-heading"><div><h3>Laporan periodik</h3><p>Perbandingan nilai transaksi bersih berdasarkan periode</p></div><div class="button-row"><select id="periodic-type" class="filter-select"><option value="bulanan">Bulanan</option><option value="triwulanan">Triwulanan</option><option value="semester">Semesteran</option><option value="tahunan">Tahunan</option></select><input id="periodic-year" class="filter-select" type="number" min="2000" max="2100"></div></div><div id="periodic-table"></div><div id="periodic-chart" class="analysis-chart"><canvas id="periodic-canvas"></canvas></div></div>
+        </section>
+
+        <section class="page" id="page-settings" data-title="Settings">
+          <div class="section-heading"><div><h2>Settings</h2><p>Atur identitas toko, kebijakan persediaan, tampilan, dan master data.</p></div></div>
+          <div class="settings-grid">
+            <article class="card settings-card"><div class="card-heading"><div><h3>Pengaturan umum</h3><p>Identitas teks untuk nota dan aplikasi</p></div><i data-lucide="store"></i></div><form id="settings-general" class="form-grid"><label>Nama toko<input name="nama_toko" required></label><label>Alamat toko<textarea name="alamat_toko" rows="2"></textarea></label><label>Nomor telepon<input name="telepon_toko"></label><label>Email toko<input name="email_toko" type="email"></label><button class="button button-primary" type="submit">Simpan identitas</button></form></article>
+            <article class="card settings-card"><div class="card-heading"><div><h3>Penukaran & persediaan</h3><p>Penukaran barang customer maksimal 2 hari setelah pembelian</p></div><i data-lucide="sliders-horizontal"></i></div><form id="settings-thresholds" class="form-grid two-col"><label>Dead stock (hari)<input name="threshold_dead_stock_hari" type="number" min="0" step="1"></label><label>Slow-moving (hari)<input name="threshold_slow_moving_hari" type="number" min="0" step="1"></label><label>Min. qty evaluasi margin<input name="minimal_qty_evaluasi_margin" type="number" min="0" step="1"></label><button class="button button-primary" type="submit">Simpan aturan</button></form></article>
+            <article class="card settings-card"><div class="card-heading"><div><h3>Tampilan & personalisasi</h3><p>Preferensi visual tersimpan di browser</p></div><i data-lucide="palette"></i></div><div class="palette-options" role="group" aria-label="Pilih palet warna"><button class="palette-choice palette-ocean" data-theme="ocean" aria-label="Palet Ocean" title="Palet Ocean"></button><button class="palette-choice palette-forest" data-theme="forest" aria-label="Palet Forest" title="Palet Forest"></button><button class="palette-choice palette-plum" data-theme="plum" aria-label="Palet Plum" title="Palet Plum"></button><label class="custom-palette" title="Pilih warna khusus"><input id="accent-color" type="color" value="#0f766e" aria-label="Warna khusus"></label><span class="palette-day-note" id="palette-day-note" aria-live="polite"></span></div><div class="button-row theme-buttons"><button class="button button-outline" id="theme-save">Simpan tampilan</button><button class="button button-ghost" id="theme-reset">Reset</button></div></article>
+          </div>
+          <article class="card table-card settings-master"><div class="card-heading"><div><h3>Kelola kategori & ukuran</h3><p>Kategori bertingkat dan ukuran per sub-kategori</p></div><div class="button-row"><button class="button button-soft" id="size-add"><i data-lucide="plus"></i> Tambah Ukuran</button><button class="button button-primary" id="category-add"><i data-lucide="plus"></i> Tambah Kategori</button></div></div><div class="master-columns"><div><h4>Kategori</h4><div id="category-table"></div></div><div><h4>Ukuran</h4><select id="size-category-filter" class="filter-select"></select><div id="size-table"></div></div></div></article>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="modal-root" id="modal-root" aria-live="polite"></div>
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+  <div class="global-loading hidden" id="global-loading"><span class="spinner"></span><span>Memproses...</span></div>
+  <div class="nota-print" id="nota-print"></div>
+</body>
+</html>
